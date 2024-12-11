@@ -1,10 +1,13 @@
 import { GraphQLClient } from "graphql-request";
 
-if (!process.env.WORDPRESS_API_URL) {
-  throw new Error("WORDPRESS_API_URL is not defined");
+const WORDPRESS_API_URL =
+  process.env.WORDPRESS_API_URL || "http://localhost:8080/graphql";
+
+if (process.env.NODE_ENV === "development" && !process.env.WORDPRESS_API_URL) {
+  console.warn("Warning: WORDPRESS_API_URL is not defined in .env.local");
 }
 
-export const graphqlClient = new GraphQLClient(process.env.WORDPRESS_API_URL, {
+export const graphqlClient = new GraphQLClient(WORDPRESS_API_URL, {
   headers: {
     "Content-Type": "application/json",
   },
