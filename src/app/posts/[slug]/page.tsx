@@ -1,5 +1,5 @@
-import { graphqlClient } from "@/lib/graphql-client";
-import { GET_POST_BY_SLUG } from "@/lib/queries";
+import { getPost } from "@/lib/api";
+// import { GET_POST_BY_SLUG } from "@/lib/queries";
 import { Post } from "@/types/post";
 import { format } from "date-fns";
 import Image from "next/image";
@@ -14,9 +14,10 @@ interface Props {
   };
 }
 
-async function getPost(slug: string): Promise<Post> {
+async function getSingle(slug: string): Promise<Post> {
   try {
-    const { post } = await graphqlClient.request(GET_POST_BY_SLUG, { slug });
+    const post = await getPost(slug);
+    // const { post } = await serverClient.request(GET_POST_BY_SLUG, { slug });
     if (!post) {
       notFound();
     }
@@ -28,7 +29,7 @@ async function getPost(slug: string): Promise<Post> {
 }
 
 export default async function PostPage({ params }: Props) {
-  const post = await getPost(params.slug);
+  const post = await getSingle(params.slug);
 
   return (
     <main className="container mx-auto px-4 py-8">

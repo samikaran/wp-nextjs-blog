@@ -1,7 +1,7 @@
-import { graphqlClient } from "@/lib/graphql-client";
-import { GET_ALL_POSTS } from "@/lib/queries";
+import { getCategoryData } from "@/lib/api";
 import PostGrid from "@/components/post-grid";
 import Pagination from "@/components/pagination";
+import { notFound } from "next/navigation";
 
 interface Props {
   params: {
@@ -12,35 +12,35 @@ interface Props {
   };
 }
 
-async function getCategoryPosts(slug: string, after?: string) {
-  const { posts } = await graphqlClient.request(GET_ALL_POSTS, {
-    first: 9,
-    after,
-    where: {
-      categoryName: slug,
-    },
-  });
-
-  return {
-    posts: posts.nodes,
-    pageInfo: posts.pageInfo,
-  };
-}
-
 export default async function CategoryPage({ params, searchParams }: Props) {
-  const { posts, pageInfo } = await getCategoryPosts(
-    params.slug,
-    searchParams.after
-  );
+  const category = await getCategoryData(params.slug, searchParams.after);
+
+  if (!category) {
+    notFound();
+  }
 
   return (
-    <main className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-bold mb-8">Category: {params.slug}</h1>
-      <PostGrid posts={posts} />
-      <Pagination
-        hasNextPage={pageInfo.hasNextPage}
-        endCursor={pageInfo.endCursor}
-      />
-    </main>
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-4xl font-bold mb-8">Category: {category.name}</h1>
+
+      {category.posts.nodes.length === 0 ? (
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-semibold text-gray-600">
+            No posts found in this category
+          </h2>
+          <p className="mt-2 text-gray-500">Check back later for new content</p>
+        </div>
+      ) : (
+        <>
+          <PostGrid posts={category.posts.nodes} />
+          {category.posts.pageInfo.hasNextPage && (
+            <Pagination
+              hasNextPage={category.posts.pageInfo.hasNextPage}
+              endCursor={category.posts.pageInfo.endCursor}
+            />
+          )}
+        </>
+      )}
+    </div>
   );
 }
